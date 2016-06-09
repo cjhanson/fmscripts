@@ -55,12 +55,11 @@ if [ -z "$conflictfile" ]; then
 	exit 2
 fi
 
-filedir=`dirname "$conflictfile"`
 info=`svn info "$conflictfile"`
 lookup "$info" "Conflict Current Base File" && leftfile=$RETVAL
 lookup "$info" "Conflict Previous Working File" && rightfile=$RETVAL
 lookup "$info" "Conflict Previous Base File" && ancestorfile=$RETVAL
-mergefile=`basename "$conflictfile"`
+lookup "$info" "Path" && mergefile=$RETVAL
 
 if [ -z "$leftfile" ] || [ -z "$rightfile" ] || [ -z "$ancestorfile" ]; then
 	echo "Can't obtain conflict info for $conflictfile" 1>&2
@@ -71,6 +70,7 @@ function labels {
 	echo Ancestor: $ancestorfile
 	echo     Left: $leftfile
 	echo    Right: $rightfile
+	echo    Merge: $mergefile
 }
 
 echo Starting FileMerge... 1>&2
@@ -79,5 +79,5 @@ if [ -x "$GN" ]; then
 	labels | "$GN" -a FileMerge -n "$FMDIFF" "Starting FileMerge"
 fi
 
-exec "$FM" -left "${filedir}/${leftfile}" -right "${filedir}/${rightfile}" \
-	-ancestor "${filedir}/${ancestorfile}" -merge "${filedir}/${mergefile}"
+exec "$FM" -left "${leftfile}" -right "${rightfile}" \
+	-ancestor "${ancestorfile}" -merge "${mergefile}"
